@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SachBite Restaurant Partner</string>
+    <string name="title_activity_main">SachBite Restaurant Partner</string>
+    <string name="package_name">in.sachbite.partner</string>
+    <string name="custom_url_scheme">in.sachbite.partner</string>
+</resources>

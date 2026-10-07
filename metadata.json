@@ -1,0 +1,6 @@
+{
+  "name": "SachBite Restaurant Partner",
+  "description": "Official mobile partner app for SachBite restaurant partners to manage profile, menu catalog, live orders, and UPI subscriptions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

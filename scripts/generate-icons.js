@@ -1,0 +1,213 @@
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+
+const SVG_LOGO = `<svg viewBox="0 0 512 512" width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="100" fill="#ffffff" />
+  
+  <defs>
+    <linearGradient id="sbGrad" x1="50" y1="50" x2="450" y2="450" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#ff7a1a" />
+      <stop offset="50%" stopColor="#ff4d00" />
+      <stop offset="100%" stopColor="#e11d48" />
+    </linearGradient>
+
+    <linearGradient id="sbSpeed" x1="0" y1="0" x2="150" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#ff9f43" />
+      <stop offset="100%" stopColor="#ff5200" />
+    </linearGradient>
+
+    <filter id="sbShadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#ff4d00" floodOpacity="0.28" />
+    </filter>
+  </defs>
+
+  <g filter="url(#sbShadow)">
+    <!-- Chef Hat -->
+    <g transform="translate(262, 58)">
+      <path
+        d="M 24,76 C 8,76 0,64 0,52 C 0,36 14,24 32,24 C 34,12 46,0 64,0 C 82,0 94,12 96,24 C 114,24 128,36 128,52 C 128,64 120,76 104,76 Z"
+        fill="url(#sbGrad)"
+      />
+      <rect x="20" y="72" width="88" height="14" rx="6" fill="url(#sbGrad)" />
+    </g>
+
+    <!-- Speed Trails (Left 3 bars) -->
+    <rect x="100" y="180" width="60" height="16" rx="8" fill="url(#sbSpeed)" />
+    <rect x="60" y="212" width="105" height="18" rx="9" fill="url(#sbSpeed)" />
+    <rect x="100" y="246" width="60" height="16" rx="8" fill="url(#sbSpeed)" />
+
+    <!-- Main 'S' Dynamic Body -->
+    <path
+      d="M 310,105 
+         C 375,105 425,145 425,198 
+         C 425,248 385,280 335,298 
+         C 395,312 438,352 438,406 
+         C 438,464 366,505 285,505 
+         C 188,505 145,450 145,390 
+         C 145,354 168,328 196,328 
+         C 220,328 238,346 238,370 
+         C 238,398 258,420 292,420 
+         C 328,420 350,398 350,370 
+         C 350,335 310,318 255,304 
+         C 195,290 152,255 152,200 
+         C 152,142 220,105 310,105 Z"
+      fill="url(#sbGrad)"
+      transform="scale(0.72) translate(40, 20)"
+    />
+
+    <!-- Fork Cutout (Upper loop) -->
+    <g fill="#ffffff" transform="scale(0.72) translate(40, 20)">
+      <path d="M 218,206 C 242,176 274,166 310,170 L 324,172 C 320,156 330,148 346,150 C 356,152 360,156 364,166 L 382,168 C 382,160 386,152 398,154 C 408,156 410,166 410,172 L 420,174 C 426,176 430,184 430,192 C 430,202 424,206 414,206 L 340,206 C 295,206 256,224 234,242 Z" opacity="0.95" />
+      <path d="M 360,135 L 420,152" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" />
+      <path d="M 346,148 L 418,170" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" />
+      <path d="M 334,162 L 410,188" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" />
+    </g>
+
+    <!-- Spoon Cutout (Lower loop) -->
+    <ellipse
+      cx="290"
+      cy="365"
+      rx="32"
+      ry="44"
+      transform="rotate(-25 290 365)"
+      fill="#ffffff"
+      opacity="0.95"
+    />
+    <path
+      d="M 248,295 C 262,312 276,334 284,354 L 268,362 C 258,338 244,316 230,302 Z"
+      fill="#ffffff"
+      opacity="0.95"
+    />
+  </g>
+
+  <!-- Typography: SachBite -->
+  <text x="145" y="440" font-family="-apple-system, system-ui, 'Plus Jakarta Sans', Inter, sans-serif" font-weight="900" font-size="52" fill="#1e1e1e" letter-spacing="-1.5">Sach</text>
+  <text x="260" y="440" font-family="-apple-system, system-ui, 'Plus Jakarta Sans', Inter, sans-serif" font-weight="900" font-size="52" fill="#ff7a1a" letter-spacing="-1.5">Bite</text>
+
+  <!-- Tagline: Good Food • Better Mood -->
+  <text x="150" y="475" font-family="-apple-system, system-ui, 'Plus Jakarta Sans', Inter, sans-serif" font-weight="600" font-size="19" fill="#4b5563" letter-spacing="1.5">Good Food</text>
+  <circle cx="266" cy="469" r="4" fill="#ff7a1a" />
+  <text x="282" y="475" font-family="-apple-system, system-ui, 'Plus Jakarta Sans', Inter, sans-serif" font-weight="600" font-size="19" fill="#4b5563" letter-spacing="1.5">Better Mood</text>
+</svg>`;
+
+const FOREGROUND_SVG = `<svg viewBox="0 0 512 512" width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sbGradFg" x1="50" y1="50" x2="450" y2="450" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#ff7a1a" />
+      <stop offset="50%" stopColor="#ff4d00" />
+      <stop offset="100%" stopColor="#e11d48" />
+    </linearGradient>
+
+    <linearGradient id="sbSpeedFg" x1="0" y1="0" x2="150" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#ff9f43" />
+      <stop offset="100%" stopColor="#ff5200" />
+    </linearGradient>
+
+    <filter id="sbShadowFg" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#ff4d00" floodOpacity="0.28" />
+    </filter>
+  </defs>
+
+  <!-- Centered Scaled Emblem for Adaptive Foreground (Safe Zone centered) -->
+  <g transform="translate(40, 10) scale(0.84)" filter="url(#sbShadowFg)">
+    <!-- Chef Hat -->
+    <g transform="translate(262, 58)">
+      <path
+        d="M 24,76 C 8,76 0,64 0,52 C 0,36 14,24 32,24 C 34,12 46,0 64,0 C 82,0 94,12 96,24 C 114,24 128,36 128,52 C 128,64 120,76 104,76 Z"
+        fill="url(#sbGradFg)"
+      />
+      <rect x="20" y="72" width="88" height="14" rx="6" fill="url(#sbGradFg)" />
+    </g>
+
+    <!-- Speed Trails (Left 3 bars) -->
+    <rect x="100" y="180" width="60" height="16" rx="8" fill="url(#sbSpeedFg)" />
+    <rect x="60" y="212" width="105" height="18" rx="9" fill="url(#sbSpeedFg)" />
+    <rect x="100" y="246" width="60" height="16" rx="8" fill="url(#sbSpeedFg)" />
+
+    <!-- Main 'S' Dynamic Body -->
+    <path
+      d="M 310,105 
+         C 375,105 425,145 425,198 
+         C 425,248 385,280 335,298 
+         C 395,312 438,352 438,406 
+         C 438,464 366,505 285,505 
+         C 188,505 145,450 145,390 
+         C 145,354 168,328 196,328 
+         C 220,328 238,346 238,370 
+         C 238,398 258,420 292,420 
+         C 328,420 350,398 350,370 
+         C 350,335 310,318 255,304 
+         C 195,290 152,255 152,200 
+         C 152,142 220,105 310,105 Z"
+      fill="url(#sbGradFg)"
+      transform="scale(0.72) translate(40, 20)"
+    />
+
+    <!-- Fork Cutout (Upper loop) -->
+    <g fill="#ffffff" transform="scale(0.72) translate(40, 20)">
+      <path d="M 218,206 C 242,176 274,166 310,170 L 324,172 C 320,156 330,148 346,150 C 356,152 360,156 364,166 L 382,168 C 382,160 386,152 398,154 C 408,156 410,166 410,172 L 420,174 C 426,176 430,184 430,192 C 430,202 424,206 414,206 L 340,206 C 295,206 256,224 234,242 Z" opacity="0.95" />
+      <path d="M 360,135 L 420,152" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" />
+      <path d="M 346,148 L 418,170" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" />
+      <path d="M 334,162 L 410,188" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" />
+    </g>
+
+    <!-- Spoon Cutout (Lower loop) -->
+    <ellipse
+      cx="290"
+      cy="365"
+      rx="32"
+      ry="44"
+      transform="rotate(-25 290 365)"
+      fill="#ffffff"
+      opacity="0.95"
+    />
+    <path
+      d="M 248,295 C 262,312 276,334 284,354 L 268,362 C 258,338 244,316 230,302 Z"
+      fill="#ffffff"
+      opacity="0.95"
+    />
+  </g>
+
+  <!-- Typography: SachBite -->
+  <text x="145" y="440" font-family="-apple-system, system-ui, 'Plus Jakarta Sans', Inter, sans-serif" font-weight="900" font-size="52" fill="#1e1e1e" letter-spacing="-1.5">Sach</text>
+  <text x="260" y="440" font-family="-apple-system, system-ui, 'Plus Jakarta Sans', Inter, sans-serif" font-weight="900" font-size="52" fill="#ff7a1a" letter-spacing="-1.5">Bite</text>
+
+  <!-- Tagline: Good Food • Better Mood -->
+  <text x="150" y="475" font-family="-apple-system, system-ui, 'Plus Jakarta Sans', Inter, sans-serif" font-weight="600" font-size="19" fill="#4b5563" letter-spacing="1.5">Good Food</text>
+  <circle cx="266" cy="469" r="4" fill="#ff7a1a" />
+  <text x="282" y="475" font-family="-apple-system, system-ui, 'Plus Jakarta Sans', Inter, sans-serif" font-weight="600" font-size="19" fill="#4b5563" letter-spacing="1.5">Better Mood</text>
+</svg>`;
+
+const densities = [
+  { name: 'mipmap-mdpi', size: 48, fgSize: 108 },
+  { name: 'mipmap-hdpi', size: 72, fgSize: 162 },
+  { name: 'mipmap-xhdpi', size: 96, fgSize: 216 },
+  { name: 'mipmap-xxhdpi', size: 144, fgSize: 324 },
+  { name: 'mipmap-xxxhdpi', size: 192, fgSize: 432 },
+];
+
+const resDir = path.resolve('android/app/src/main/res');
+
+fs.mkdirSync('temp_icons', { recursive: true });
+fs.writeFileSync('temp_icons/master.svg', SVG_LOGO);
+fs.writeFileSync('temp_icons/foreground.svg', FOREGROUND_SVG);
+
+densities.forEach((d) => {
+  const targetDir = path.join(resDir, d.name);
+  fs.mkdirSync(targetDir, { recursive: true });
+
+  // Standard legacy icon
+  execSync(`convert -background none -resize ${d.size}x${d.size} temp_icons/master.svg "${path.join(targetDir, 'ic_launcher.png')}"`);
+  // Round legacy icon
+  execSync(`convert -background none -resize ${d.size}x${d.size} temp_icons/master.svg "${path.join(targetDir, 'ic_launcher_round.png')}"`);
+  // Adaptive foreground
+  execSync(`convert -background none -resize ${d.fgSize}x${d.fgSize} temp_icons/foreground.svg "${path.join(targetDir, 'ic_launcher_foreground.png')}"`);
+});
+
+// Also create public/logo.png and public/favicon.png for web app PWA and icon sync
+fs.mkdirSync('public', { recursive: true });
+execSync(`convert -background none -resize 512x512 temp_icons/master.svg public/sachbite-logo.png`);
+execSync(`convert -background none -resize 192x192 temp_icons/master.svg public/favicon.png`);
+
+console.log('✅ Android launcher icon assets successfully generated across all densities!');
